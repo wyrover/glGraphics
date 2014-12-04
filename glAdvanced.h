@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 10/20/2014
+//Confirmed working: 11/19/2014
 
 #pragma once
 
@@ -330,8 +330,6 @@ protected:
 	float field_of_view_angle;
 	float z_near;
 	float z_far;
-
-	void virtual initialize();
 public:
 	//Constructor/Destructor
 	glForm3d(int argv, char ** addr, int wid, int hei, char* t,
@@ -354,6 +352,7 @@ public:
 
 	//Graphics Function
 	void virtual draw();
+	void virtual td_draw();
 };
 //This is a pop-up
 class glPopUp:

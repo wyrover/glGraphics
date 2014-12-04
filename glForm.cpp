@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 10/10/2014
+//Confirmed working: 11/19/2014
 
 #ifndef GLFORM_CPP
 #define GLFORM_CPP
@@ -272,23 +272,6 @@ using namespace std;
 
 		glClearColor(background.red, background.green, background.blue, background.alpha);
 	}
-	//Initializes the graphics of the 3d form
-	void glForm3d::initialize()
-	{
-		glMatrixMode(GL_PROJECTION);												// select projection matrix
-		glViewport(0, 0, getWidth(), getHeight());									// set the viewport
-		glMatrixMode(GL_PROJECTION);												// set matrix mode
-		glLoadIdentity();															// reset projection matrix
-		GLfloat aspect = (GLfloat) getWidth() / getHeight();
-		//gluPerspective(getFOV(), aspect, getZNear(), getZFar());					// set up a perspective projection matrix
-		glMatrixMode(GL_MODELVIEW);													// specify which matrix is the current matrix
-		glShadeModel( GL_SMOOTH );
-		glClearDepth( 1.0f );														// specify the clear value for the depth buffer
-		glEnable( GL_DEPTH_TEST );
-		glDepthFunc( GL_LEQUAL );
-		glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );						// specify implementation-specific hints
-		glClearColor(background.red, background.green, background.blue, background.alpha);
-	}
 	//Clears the form before drawing
 	void glForm::clear()
 	{
@@ -316,6 +299,7 @@ using namespace std;
 		}
 
 		checkForceSize(this);
+		glMatrixMode(GL_MODELVIEW);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);							// Clear Screen and Depth Buffer
 		glLoadIdentity();
 	}
@@ -377,9 +361,37 @@ using namespace std;
 			next_form->draw();
 		else
 		{
-			glTranslatef(0.0f,0.0f,-3.0f);
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			GLfloat aspect = (GLfloat) getWidth() / getHeight();
+			gluPerspective(getFOV(), aspect, getZNear(), getZFar());
+			glMatrixMode(GL_MODELVIEW);
+			glViewport(0, 0, getWidth(), getHeight());
+
+
+			glPushMatrix();
+			td_draw();
+			glPopMatrix();
+
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glLoadIdentity();
+			glOrtho(0, getWidth(), 0, getHeight(), -1, 1);
+			glMatrixMode(GL_MODELVIEW);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glDisable(GL_CULL_FACE);
+
+			glClear(GL_DEPTH_BUFFER_BIT);
+
+			drawElements();
 			virtual_draw();
 		}
+	}
+	//Draws the 3d part of the 3d image
+	void glForm3d::td_draw()
+	{
+		//Virtual, no action
 	}
 	//Swaps out the display
 	void glForm::display()
