@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 11/19/2014
+//Confirmed working: 12/8/2014
 
 #ifndef GLFORM_CPP
 #define GLFORM_CPP
@@ -483,11 +483,16 @@ using namespace std;
 
 		//Check all the clicks
 		glElement* temp;
-		for (list<glElement*>::iterator it = clickEvents.begin(); (it!=clickEvents.end()&&!clicked); ++it)
+		for (list<glElement*>::iterator it = clickEvents.begin(); it!=clickEvents.end(); ++it)
 		{
-			clicked = (*it)->clickListener(button, state, mousePositionX, mousePositionY);
-			if(clicked)
-				focus = (*it);
+			if(!clicked)
+			{
+				clicked = (*it)->clickListener(button, state, mousePositionX, mousePositionY);
+				if(clicked)
+					focus = (*it);
+			}
+			else if((*it)!=focus)
+				(*it)->clickListener(button, state, ~(-1), ~(-1));
 		}
 
 		//Nothing was clicked, focus is NULL
@@ -640,6 +645,9 @@ using namespace std;
 		background.green = .4f;
 		background.alpha = .6f;
 
+		heightDiv = height/4;
+		widthDiv = width/4;
+
 		lblStatus.setText(str);
 		pushElement(&lblStatus);
 
@@ -659,23 +667,23 @@ using namespace std;
 
 		glColor4f(background.red, background.green, background.blue, 1);
 		glBegin(GL_QUADS);
-		glVertex2f(width/4,height/4);
-		glVertex2f(width/4, 3*height/4);
-		glVertex2f(3*width/4, 3*height/4);
-		glVertex2f(3*width/4, height/4);
+		glVertex2f(widthDiv,heightDiv);
+		glVertex2f(widthDiv, height-heightDiv);
+		glVertex2f(width-widthDiv, height-heightDiv);
+		glVertex2f(width-widthDiv, heightDiv);
 		glEnd();
 
 		glColor4f(master_background.red, master_background.green, master_background.blue, 1);
 		glBegin(GL_QUADS);
-		glVertex2f(width/4+4,height/4+4);
-		glVertex2f(width/4+4, 3*height/4-4);
-		glVertex2f(3*width/4-4, 3*height/4-4);
-		glVertex2f(3*width/4-4, height/4+4);
+		glVertex2f(widthDiv+4,heightDiv+4);
+		glVertex2f(widthDiv+4, height-heightDiv-4);
+		glVertex2f(width-widthDiv-4, height-heightDiv-4);
+		glVertex2f(width-widthDiv-4, heightDiv+4);
 		glEnd();
 
 		//Set the location of the status label
-		lblStatus.setX(3*width/9);
-		lblStatus.setY(6*height/9);
+		lblStatus.setX(widthDiv+(width-2*widthDiv-lblStatus.getWidth())/2);
+		lblStatus.setY(height-heightDiv-40);
 	}
 	
 #endif

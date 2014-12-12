@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 11/19/2014
+//Confirmed working: 12/8/2014
 
 #pragma once
 
@@ -191,6 +191,7 @@ class glTextbox:
 {
 protected:
 	string text;
+	string true_text;
 
 	color textColor;
 	color clickedColor;
@@ -202,7 +203,10 @@ protected:
 
 	int cursor_loc;
 	int old_curs;
+	int curse_blink;
 	int setCurseLoc(int x);
+
+	bool display;
 
 	list<char> bad_inputs;
 public:
@@ -216,6 +220,7 @@ public:
 	void setTextColor(color c);
 	void setFont(void* x);
 	void setMaxChars(int x);
+	void setDisplayType(bool x);
 	void pushBadInput(char x);
 	void setClickedColor(color c);
 
@@ -361,6 +366,8 @@ class glPopUp:
 protected:
 	glForm* master;
 	glLabel lblStatus;
+	int widthDiv;
+	int heightDiv;
 
 	color master_background;
 public:
