@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 10/9/2014
+//Confirmed working: 12/8/2014
 
 #ifndef GLELEMENTS_CPP
 #define GLELEMENTS_CPP
@@ -918,6 +918,9 @@ using namespace std;
 		width = 150;
 		height = 40;
 
+		curse_blink = 0;
+		display = true;
+
 		col.red = .7f;
 		col.green = .7f;
 		col.blue = .7f;
@@ -953,6 +956,9 @@ using namespace std;
 	}
 	int glTextbox::setCurseLoc(int x)
 	{
+		curse_blink = 0;
+
+		
 		//Fringe cases
 		if(x<(xPos+10))
 			return 0;
@@ -1008,7 +1014,6 @@ using namespace std;
 
 				if(pressedFunction!=NULL)
 					pressedFunction(this,master);
-
 				return true;
 			}
 			if(cursor_loc>-1)
@@ -1016,6 +1021,9 @@ using namespace std;
 				if(clickedFunction!=NULL)
 					clickedFunction(this,master);
 			}
+
+			if(old_curs !=-1)
+				glutIgnoreKeyRepeat(true);
 			cursor_loc = -1;
 			old_curs = -1;
 			return false;
@@ -1055,7 +1063,22 @@ using namespace std;
 	void glTextbox::setText(char* t)
 	{
 		if(t!=NULL)
-			text = t;
+		{
+			true_text = t;
+			if(display)
+				text = true_text;
+			else
+			{
+				string str = "";
+				int cnt = 0;
+				while(cnt<true_text.length())
+				{
+					str = str+'*';
+					cnt++;
+				}
+				text = str;
+			}
+		}
 	}
 	//Sets the text color
 	void glTextbox::setTextColor(color c)
@@ -1077,6 +1100,10 @@ using namespace std;
 		if(text.length()>x)
 			text = text.substr(0,x);
 	}
+	void glTextbox::setDisplayType(bool x)
+	{
+		display = x;
+	}
 	//Push a bad character onto the list
 	void glTextbox::pushBadInput(char x)
 	{
@@ -1093,7 +1120,7 @@ using namespace std;
 	//Gets the text
 	char* glTextbox::getText()
 	{
-		return (char*) text.c_str();
+		return (char*) true_text.c_str();
 	}
 	//Gets the text color
 	color glTextbox::getTextColor()
@@ -1144,6 +1171,9 @@ using namespace std;
 		//Draw cursor
 		if(cursor_loc == -1)
 			return;
+
+		glutIgnoreKeyRepeat(false);
+
 		glColor4f(0, 0, 0, 1);
 		int trace = xPos+10;
 
@@ -1159,12 +1189,17 @@ using namespace std;
 			trace = trace + glutBitmapLength(font, (unsigned char*)array);
 		delete[] array;
 
-		glBegin(GL_QUADS);
-		glVertex2f(trace-1, yPos+8);
-		glVertex2f(trace-1, yPos + height-8);
-		glVertex2f(trace+1, yPos + height-8);
-		glVertex2f(trace+1, yPos+8);
-		glEnd();
+		curse_blink = (curse_blink+1)%60;
+
+		if(curse_blink<30)
+		{
+			glBegin(GL_QUADS);
+			glVertex2f(trace-1, yPos+8);
+			glVertex2f(trace-1, yPos + height-8);
+			glVertex2f(trace+1, yPos + height-8);
+			glVertex2f(trace+1, yPos+8);
+			glEnd();
+		}
 
 		//Draw highlighted portion
 		if(old_curs == cursor_loc || old_curs<0)
@@ -1211,9 +1246,10 @@ using namespace std;
 			{
 				if(cursor_loc == 0)
 					return;
-				text = text.substr(0,cursor_loc-1)+text.substr(cursor_loc,text.length()-cursor_loc);
+				true_text = true_text.substr(0,cursor_loc-1)+true_text.substr(cursor_loc,true_text.length()-cursor_loc);
 				cursor_loc--;
 				old_curs = cursor_loc;
+				setText((char*)true_text.c_str());
 				return;
 			}
 			else
@@ -1234,9 +1270,10 @@ using namespace std;
 				}
 
 				//Delete what's inbetween
-				text = text.substr(0,lo) + text.substr(hi,text.length());
+				true_text = true_text.substr(0,lo) + true_text.substr(hi,true_text.length());
 				cursor_loc = lo;
 				old_curs = lo;
+				setText((char*)true_text.c_str());
 				return;
 			}
 		}
@@ -1271,15 +1308,16 @@ using namespace std;
 			}
 
 			//Delete what's inbetween
-			text = text.substr(0,lo) + text.substr(hi,text.length());
+			true_text = true_text.substr(0,lo) + true_text.substr(hi,true_text.length());
 			cursor_loc = lo;
 			old_curs = lo;
 		}
 
 		//Normal type case
-		text = text.substr(0,cursor_loc)+key+text.substr(cursor_loc,text.length()-cursor_loc);
+		true_text = true_text.substr(0,cursor_loc)+key+true_text.substr(cursor_loc,true_text.length()-cursor_loc);
 		cursor_loc++;
 		old_curs = cursor_loc;
+		setText((char*)true_text.c_str());
 		return;
 	}
 	//Triggers when a special key is pressed
