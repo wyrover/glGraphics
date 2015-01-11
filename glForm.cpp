@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/8/2014
+//Confirmed working: 1/8/2015
 
 #ifndef GLFORM_CPP
 #define GLFORM_CPP
@@ -26,13 +26,16 @@ using namespace std;
 	{
 		next_form = NULL;
 		previous_form = NULL;
+		vertical_scroller = NULL;
 		form_return_flag = false;
+		allowTraverse = true;
 
 		width = 100;
 		height =100;
 		title = (char*) "NULL";
 		lockDisplay = true;
 		focus = NULL;
+		hld = NULL;
 
 		background.red = .9f;
 		background.green = .9f;
@@ -80,6 +83,7 @@ using namespace std;
 	{
 		form_return_flag = false;
 		lockDisplay = true;
+		allowTraverse = true;
 		next_form = NULL;
 		previous_form = prev;
 
@@ -90,6 +94,8 @@ using namespace std;
 		setTitle(prev->getTitle());
 
 		focus = NULL;
+		hld = NULL;
+		vertical_scroller = NULL;
 
 		reDisplay = false;
 		lockDisplay = false;
@@ -233,6 +239,8 @@ using namespace std;
 	{
 		elmList.push_back(x);
 		x->setMaster((void*)this);
+		if(x->isScroller() == GL_YES)
+			vertical_scroller = (glScrollbar*) x;
 	}
 	//Pushes an element onto the mouse queue
 	void glForm::addMouseListener(glElement* x)
@@ -244,6 +252,8 @@ using namespace std;
 	{
 		if(focus == x)
 			focus = NULL;
+		if(vertical_scroller == x)
+			vertical_scroller = NULL;
 		elmList.remove(x);
 		clickEvents.remove(x);
 	}
@@ -258,6 +268,46 @@ using namespace std;
 	void glForm::sendMessage(int x)
 	{
 		//Virtual function
+	}
+	//Focuses on an element
+	void glForm::setFocus(glElement* x)
+	{
+		traverse_focus_flag = false;
+		if(focus!=NULL)
+			focus->focus(false);
+		for (list<glElement*>::iterator it = clickEvents.begin(); it!=clickEvents.end(); ++it)
+		{
+			if(x==(*it))
+			{
+				hld = focus;
+				focus = x;
+				focus->focus(true);
+				if(vertical_scroller!=NULL)
+				{
+					int cur_pos = 0;
+					//Need to move up
+					if(focus->getY()+focus->getHeight()+10 > getHeight())
+					{
+						cur_pos = vertical_scroller->getScrollPosition();
+						vertical_scroller->setScrollPosition(cur_pos + (getHeight() - focus->getY()-focus->getHeight()-10));
+						vertical_scroller->call_click();
+					}
+
+					//Need to move down
+					if(cur_pos == 0 && focus->getY()-10 < 0)
+					{
+						cur_pos = vertical_scroller->getScrollPosition();
+						vertical_scroller->setScrollPosition(cur_pos - (focus->getY()-10));
+						vertical_scroller->call_click();
+					}
+				}
+				return;
+			}
+		}
+	}
+	void glForm::setTraverse(bool x)
+	{
+		allowTraverse = x;
 	}
 
 //Graphics Functions----------------------------------------------------------------------------------------------------------------------
@@ -422,7 +472,10 @@ using namespace std;
 		if(next_form!=NULL)
 			next_form->update();
 		else
+		{
+			hld = NULL;
 			virtual_update();
+		}
 	}
 	void glForm::virtual_update()
 	{
@@ -524,20 +577,30 @@ using namespace std;
 			default:      
 			break;
 		}
-		if(focus!=NULL)
+		
+		//Enter key
+		if(hld==NULL)
+			hld = focus;
+		if(hld!=NULL)
 		{
-			focus->keyListener(key);
-			if(focus->getKeyboardStatus())
+			hld->keyListener(key);
+			if(hld->getKeyboardStatus())
 			{
 				if(key == '\n' || key=='\r')
 				{
-					focus->clickListener(0, 1, ~(-1), ~(-1));
-					focus->clickListener(0, 0, ~(-1), ~(-1));
-					focus = NULL;
+					hld->clickListener(0, 1, ~(-1), ~(-1));
+					hld->clickListener(0, 0, ~(-1), ~(-1));
+					hld->enter();
+					hld->focus(false);
+					if(focus==hld)
+						focus = NULL;
 				}
+				hld = NULL;
 				return;
 			}
 		}
+		hld = NULL;
+		
 		virtualKeyboard(key, mousePositionX, mousePositionY);
 	}
 	//The called virtual keyboard event
@@ -553,6 +616,10 @@ using namespace std;
 			return;
 		}
 		y=height-y;
+		
+		//Unfocus a traverse
+		if(traverse_focus_flag)
+			setFocus(NULL);
 		
 		bool focus_elm = false;
 		//Test for focus
@@ -604,11 +671,76 @@ using namespace std;
 		mousePositionY=height-mousePositionY;
 
 		//Process key press for a focused element
-		if(focus!=NULL)
+		if(focus!=NULL && focus->surpressSpecial(key))
 		{
 			focus->specialKeyListener(key);
 			if(focus->getKeyboardStatus())
 				return;
+		}
+		
+		//Go to first
+		if(focus==NULL && allowTraverse && (key == KEY_UP || key == KEY_DOWN ||
+				   key == KEY_LEFT || key == KEY_RIGHT))
+		{
+			for (list<glElement*>::iterator it = clickEvents.begin(); it!=clickEvents.end(); ++it)
+			{
+				if((*it)->getFocusable())
+				{
+					setFocus((*it));
+					traverse_focus_flag = true;
+					return;
+				}
+			}
+		}
+		
+		//Move "forward"
+		if(focus!=NULL && allowTraverse && (key == KEY_DOWN || key == KEY_RIGHT))
+		{
+			bool flag = false;
+			for (list<glElement*>::iterator it = clickEvents.begin(); it!=clickEvents.end(); ++it)
+			{
+				if((*it)->getFocusable()&&flag)
+				{
+					setFocus((*it));
+					traverse_focus_flag = true;
+					return;
+				}
+				if((*it) == focus)
+					flag = true;
+			}
+			for (list<glElement*>::iterator it = clickEvents.begin(); it!=clickEvents.end(); ++it)
+			{
+				if((*it)->getFocusable())
+				{
+					setFocus((*it));
+					traverse_focus_flag = true;
+					return;
+				}
+			}
+		}
+		
+		//Move "backward"
+		if(focus!=NULL && allowTraverse && (key == KEY_UP || key == KEY_LEFT))
+		{
+			bool flag = false;
+			for (list<glElement*>::reverse_iterator it = clickEvents.rbegin(); it!=clickEvents.rend(); ++it)
+			{
+				if((*it)->getFocusable()&&flag)
+				{
+					setFocus((*it));
+					return;
+				}
+				if((*it) == focus)
+					flag = true;
+			}
+			for (list<glElement*>::reverse_iterator it = clickEvents.rbegin(); it!=clickEvents.rend(); ++it)
+			{
+				if((*it)->getFocusable())
+				{
+					setFocus((*it));
+					return;
+				}
+			}
 		}
 
 		virtualSpecialKeyDown(key, mousePositionX,mousePositionY);
