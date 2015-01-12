@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/8/2014
+//Confirmed working: 1/10/2015
 
 #ifndef GLELEMENTS_CPP
 #define GLELEMENTS_CPP
@@ -28,6 +28,7 @@ using namespace std;
 		clickedFunction = NULL;
 		pressedFunction = NULL;
 		depressedFunction = NULL;
+		enterFunction = NULL;
 	}
 	//Default destructor
 	glElement::~glElement()
@@ -96,6 +97,16 @@ using namespace std;
 	{
 		return false;
 	}
+	//Returns if an element is focusable
+	bool glElement::getFocusable()
+	{
+		return false;
+	}
+	//Returns if an element is a scroller
+	int glElement::isScroller()
+	{
+		return GL_NO;
+	}
 
 	//Listeners--------------------------------------------------------------
 	
@@ -113,6 +124,17 @@ using namespace std;
 	void glElement::setReleaseEvent(void (*func) (glElement*,void*))
 	{
 		depressedFunction = func;
+	}
+	//Sets the funtion to be called on enter
+	void glElement::setEnterEvent(void (*func) (glElement*, void*))
+	{
+		enterFunction = func;
+	}
+	//Preforms the enter action
+	void glElement::enter()
+	{
+		if(enterFunction!=NULL)
+			enterFunction(this,master);
 	}
 	//Sets the master of this element
 	void glElement::setMaster(void* m)
@@ -177,6 +199,15 @@ using namespace std;
 	void glElement::specialKeyListener(int key)
 	{
 	}
+	//Surpresses a special key
+	bool glElement::surpressSpecial(int key)
+	{
+		return false;
+	}
+	//Focuses a glElement (Used for textboxes and key-board owned elements)
+	void glElement::focus(bool f)
+	{
+	}
 
 
 	//Graphics Functions-----------------------------------------------------
@@ -238,7 +269,7 @@ using namespace std;
 
 		centered = false;
 		font = GLUT_BITMAP_HELVETICA_18;
-		text = (char*) "NULL";
+		setText(NULL);
 		setTextSize();
 	}
 	//Destructor
@@ -249,7 +280,7 @@ using namespace std;
 	{
 		textHeight = 20;
 		//textHeight = glutBitmapHeight(font);
-		textWidth = glutBitmapLength(font, (unsigned char*)text);
+		textWidth = glutBitmapLength(font, (unsigned char*)text.c_str());
 	}
 
 	//Set Functions--------------------------------------------------------
@@ -258,7 +289,9 @@ using namespace std;
 	void glLabel::setText(char* t)
 	{
 		if(t!=NULL)
-			text = t;
+			text = string(t);
+		else
+			text = "NULL";
 		setTextSize();
 	}
 	//Sets the text color
@@ -283,7 +316,7 @@ using namespace std;
 	//Gets the text
 	char* glLabel::getText()
 	{
-		return text;
+		return (char*)text.c_str();
 	}
 	//Gets the text color
 	color glLabel::getTextColor()
@@ -300,6 +333,7 @@ using namespace std;
 	{
 		return centered;
 	}
+	
 	//Graphics Functions--------------------------------------------------
 	void glLabel::draw()
 	{
@@ -315,15 +349,15 @@ using namespace std;
 		glEnd();
 
 		if(centered)
-			drawText(xPos+(width-textWidth)/2,yPos+(height-textHeight)/2,text,textColor,font);
+			drawText(xPos+(width-textWidth)/2,yPos+(height-textHeight)/2,(char*)text.c_str(),textColor,font);
 		else
-			drawText(xPos+5,yPos+(height-textHeight)/2,text,textColor,font);
+			drawText(xPos+5,yPos+(height-textHeight)/2,(char*)text.c_str(),textColor,font);
 	}
 
-//glButton---------------------------------------------------------------------
+//glArrowButton----------------------------------------------------------------
 
 	//Constructor
-	glButton::glButton()
+	glArrowButton::glArrowButton()
 	{
 		//Event functions
 		clicked = false;
@@ -336,8 +370,10 @@ using namespace std;
 		xPos = 0;
 		yPos = 0;
 
-		width = 150;
-		height = 40;
+		width = 20;
+		height = 20;
+		
+		direction = 0;
 
 		h_b = BORDER_VALUE;
 		
@@ -355,25 +391,22 @@ using namespace std;
 		clickedColor.blue = 1;
 		clickedColor.green = .3f;
 		clickedColor.alpha = .7f;
-
-		centered = true;
-		font = GLUT_BITMAP_HELVETICA_18;
-		text = (char*) "NULL";
-		setTextSize();
 	}
 	//Destructor
-	glButton::~glButton()
-	{}
+	glArrowButton::~glArrowButton()
+	{
+	}
 	
-	//Get/Set Functions---------------------------------------------
-	
-	//Sets the clicked color based on an input
-	void glButton::setClickedColor(color c)
+	//Set Functions--------------------------------------------------------
+	void glArrowButton::setTextColor(color c)
+	{
+		textColor = c;
+	}
+	void glArrowButton::setClickedColor(color c)
 	{
 		clickedColor = c;
 	}
-	//Sets the border size
-	void glButton::setBorderSize(int s)
+	void glArrowButton::setBorderSize(int s)
 	{
 		if(s<=0)
 		{
@@ -382,20 +415,31 @@ using namespace std;
 		}
 		h_b = s;
 	}
-	//Returns the clicked color
-	color glButton::getClickedColor()
+	void glArrowButton::setDirection(int d)
+	{
+		direction = d;
+	}
+	
+	//Get Functions--------------------------------------------------------
+	color glArrowButton::getTextColor()
+	{
+		return textColor;
+	}
+	color glArrowButton::getClickedColor()
 	{
 		return clickedColor;
 	}
-	//Returns the border size
-	int glButton::getBorderSize()
+	int glArrowButton::getBorderSize()
 	{
 		return h_b;
 	}
+	int glArrowButton::getDirection()
+	{
+		return direction;
+	}
 	
-	//Draw Function-------------------------------------------------
-	
-	void glButton::draw()
+	//Graphics Functions---------------------------------------------------
+	void glArrowButton::draw()
 	{
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable( GL_BLEND );
@@ -471,13 +515,212 @@ using namespace std;
 		      glVertex2f(xPos+width-h_b, yPos+h_b);
 		      glEnd();
 		}
-
-		if(centered)
-			drawText(xPos+(width-textWidth)/2,yPos+(height-textHeight)/2,text,textColor,font);
-		else
-			drawText(xPos+5,yPos+(height-textHeight)/2,text,textColor,font);
+		
+		//Indicator
+		glColor4f(textColor.red, textColor.green, textColor.blue, textColor.alpha);
+		glBegin(GL_TRIANGLES);
+		
+		if(direction == 0)
+		{
+			glVertex2f(xPos+width/4, yPos+height/4);
+			glVertex2f(xPos+3*width/4, yPos+height/4);
+			glVertex2f(xPos+width/2, yPos+3*height/4);
+		}
+		else if(direction == 1)
+		{
+			glVertex2f(xPos+width/4, yPos+height/4);
+			glVertex2f(xPos+width/4, yPos+3*height/4);
+			glVertex2f(xPos+3*width/4, yPos+height/2);
+		}
+		else if(direction == 2)
+		{
+			glVertex2f(xPos+width/4, yPos+3*height/4);
+			glVertex2f(xPos+3*width/4, yPos+3*height/4);
+			glVertex2f(xPos+width/2, yPos+height/4);
+		}
+		else if(direction == 3)
+		{
+			glVertex2f(xPos+3*width/4, yPos+height/4);
+			glVertex2f(xPos+3*width/4, yPos+3*height/4);
+			glVertex2f(xPos+width/4, yPos+height/2);
+		}
+		
+		glEnd();
 	}
 
+//glButton---------------------------------------------------------------------
+
+	//Constructor
+	glButton::glButton()
+	{
+		//Event functions
+		clicked = false;
+		mouseOver = false;
+		focused = false;
+		master = NULL;
+		clickedFunction = NULL;
+		pressedFunction = NULL;
+		depressedFunction = NULL;
+		
+		xPos = 0;
+		yPos = 0;
+
+		width = 150;
+		height = 40;
+
+		h_b = BORDER_VALUE;
+		
+		col.red = .7f;
+		col.green = .7f;
+		col.blue = .7f;
+		col.alpha = 1;
+
+		textColor.red = 0;
+		textColor.blue = 0;
+		textColor.green = 0;
+		textColor.alpha = 1;
+		
+		clickedColor.red = .3f;
+		clickedColor.blue = 1;
+		clickedColor.green = .3f;
+		clickedColor.alpha = .7f;
+
+		centered = true;
+		font = GLUT_BITMAP_HELVETICA_18;
+		setText(NULL);
+		setTextSize();
+	}
+	//Destructor
+	glButton::~glButton()
+	{}
+	
+	//Get/Set Functions---------------------------------------------
+	
+	//Sets the clicked color based on an input
+	void glButton::setClickedColor(color c)
+	{
+		clickedColor = c;
+	}
+	//Sets the border size
+	void glButton::setBorderSize(int s)
+	{
+		if(s<=0)
+		{
+		      cerr<<"Invalid border size"<<endl;
+		      return;
+		}
+		h_b = s;
+	}
+	//Returns the clicked color
+	color glButton::getClickedColor()
+	{
+		return clickedColor;
+	}
+	//Returns the border size
+	int glButton::getBorderSize()
+	{
+		return h_b;
+	}
+	//Returns if an element is focusable
+	bool glButton::getFocusable()
+	{
+		return true;
+	}
+	//Returns that this element does accept keys
+	bool glButton::getKeyboardStatus()
+	{
+		return true;
+	}
+	
+	//Draw Function-------------------------------------------------
+	
+	void glButton::draw()
+	{
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable( GL_BLEND );
+
+		if(!clicked&&!mouseOver&&!focused)
+		{
+		      glColor4f(col.red, col.green, col.blue, col.alpha);
+		      glBegin(GL_QUADS);
+		      
+		      glVertex2f(xPos, yPos);
+		      glVertex2f(xPos, yPos + height);
+		      glVertex2f(xPos + width, yPos + height);
+		      glVertex2f(xPos + width, yPos);
+		      
+		      glEnd();
+		}
+		else if(clicked)
+		{
+		      glColor4f(clickedColor.red, clickedColor.green, clickedColor.blue, clickedColor.alpha);
+		      glBegin(GL_QUADS);
+		      
+		      glVertex2f(xPos, yPos);
+		      glVertex2f(xPos, yPos + height);
+		      glVertex2f(xPos + width, yPos + height);
+		      glVertex2f(xPos + width, yPos);
+		      
+		      glEnd();
+		}
+		else
+		{
+		      glColor4f(col.red, col.green, col.blue, col.alpha);
+		      glBegin(GL_QUADS);
+		      
+		      //Primary shape
+		      glVertex2f(xPos+h_b, yPos+h_b);
+		      glVertex2f(xPos+h_b, yPos + height-h_b);
+		      glVertex2f(xPos + width-h_b, yPos + height-h_b);
+		      glVertex2f(xPos + width-h_b, yPos+h_b);
+		      glEnd();
+		      
+		      //Boundry
+		      glColor4f(clickedColor.red, clickedColor.green, clickedColor.blue, clickedColor.alpha);
+		      
+		      //Right
+		      glBegin(GL_QUADS);
+		      glVertex2f(xPos, yPos);
+		      glVertex2f(xPos, yPos + height);
+		      glVertex2f(xPos+h_b, yPos + height-h_b);
+		      glVertex2f(xPos+h_b, yPos+h_b);
+		      glEnd();
+		      
+		      //Top
+		      glBegin(GL_QUADS);
+		      glVertex2f(xPos+h_b, yPos+height-h_b);
+		      glVertex2f(xPos, yPos + height);
+		      glVertex2f(xPos+width, yPos + height);
+		      glVertex2f(xPos+width-h_b, yPos+height-h_b);
+		      glEnd();
+		      
+		      //Left
+		      glBegin(GL_QUADS);
+		      glVertex2f(xPos+width, yPos);
+		      glVertex2f(xPos+width, yPos + height);
+		      glVertex2f(xPos+width-h_b, yPos + height-h_b);
+		      glVertex2f(xPos+width-h_b, yPos+h_b);
+		      glEnd();
+		      
+		      //Bottom
+		      glBegin(GL_QUADS);
+		      glVertex2f(xPos+h_b, yPos+h_b);
+		      glVertex2f(xPos, yPos);
+		      glVertex2f(xPos+width, yPos);
+		      glVertex2f(xPos+width-h_b, yPos+h_b);
+		      glEnd();
+		}
+
+		if(centered)
+			drawText(xPos+(width-textWidth)/2,yPos+(height-textHeight)/2,getText(),textColor,font);
+		else
+			drawText(xPos+5,yPos+(height-textHeight)/2,getText(),textColor,font);
+	}
+	void glButton::focus(bool f)
+	{
+		focused = f;
+	}
+	
 //glFormMenu------------------------------------------------------------------
 
 	//Nested buttons helper class------------------------
@@ -899,7 +1142,7 @@ using namespace std;
 		invisible = x;
 	}
 
-//glLabel-------------------------------------------------------------------------------------------------------------
+//glTextbox-------------------------------------------------------------------------------------------------------------
 	
 	//Constructor
 	glTextbox::glTextbox()
@@ -939,7 +1182,8 @@ using namespace std;
 		textHeight = 20;
 
 		font = GLUT_BITMAP_HELVETICA_18;
-		text = (char*) "";
+		text = "";
+		true_text = string("");
 		cursor_loc = -1;
 		old_curs = -1;
 
@@ -1114,6 +1358,28 @@ using namespace std;
 	{
 		clickedColor = c;
 	}
+	//Focuses the textbox
+	void glTextbox::focus(bool f)
+	{
+		if(!f)
+		{
+			if(old_curs !=-1)
+				glutIgnoreKeyRepeat(true);
+			cursor_loc = -1;
+			old_curs = -1;
+			if(clickedFunction!=NULL)
+					clickedFunction(this,master);
+			return;
+		}
+
+		cursor_loc = setCurseLoc(xPos+getWidth()-1);
+		old_curs = cursor_loc;
+
+		if(pressedFunction!=NULL)
+			pressedFunction(this,master);
+		if(depressedFunction!=NULL)
+			depressedFunction(this,master);
+	}
 
 	//Get Functions--------------------------------------------------------
 
@@ -1141,6 +1407,11 @@ using namespace std;
 	color glTextbox::getClickedColor()
 	{
 		return clickedColor;
+	}
+	//Returns if an element is focusable
+	bool glTextbox::getFocusable()
+	{
+		return true;
 	}
 
 	//Graphics Functions--------------------------------------------------
@@ -1314,7 +1585,10 @@ using namespace std;
 		}
 
 		//Normal type case
-		true_text = true_text.substr(0,cursor_loc)+key+true_text.substr(cursor_loc,true_text.length()-cursor_loc);
+		if(true_text.length()>0)
+			true_text = true_text.substr(0,cursor_loc)+key+true_text.substr(cursor_loc,true_text.length()-cursor_loc);
+		else
+			true_text = string("")+key;
 		cursor_loc++;
 		old_curs = cursor_loc;
 		setText((char*)true_text.c_str());
@@ -1334,6 +1608,284 @@ using namespace std;
 			old_curs = cursor_loc;
 		}
 	}
+	bool glTextbox::surpressSpecial(int key)
+	{
+		if(key==KEY_LEFT || key == KEY_RIGHT)
+			return true;
+		return false;
+	}
+	
+//glScrollbar------------------------------------------------------------------
 
+	//Constructor
+	glScrollbar::glScrollbar()
+	{
+		//Event functions
+		clicked = false;
+		mouseOver = false;
+		master = NULL;
+		clickedFunction = NULL;
+		pressedFunction = NULL;
+		depressedFunction = NULL;
+		enterFunction = NULL;
+		
+		up.setX(0);
+		up.setDirection(IND_UP);
+		up.setMaster(this);
+		
+		down.setX(0);
+		down.setY(0);
+		down.setDirection(IND_DOWN);
+		up.setMaster(this);
+		
+		width = 20;
+		xPos = 0;
+		yPos = up.getHeight();
+
+		expanded_window = 0;
+		scroll_position = 0;
+		
+		selected = false;
+		prev_pos = 0;
+
+		clickedColor.red = .3f;
+		clickedColor.blue = 1;
+		clickedColor.green = .3f;
+		clickedColor.alpha = .7f;
+
+		background.red = .8f;
+		background.green = .8f;
+		background.blue = .8f;
+		background.alpha = 1;
+
+		col.red = .7f;
+		col.green = .7f;
+		col.blue = .7f;
+		col.alpha = 1;
+	}
+	//Destructor
+	glScrollbar::~glScrollbar()
+	{
+	}
+
+	//Set Functions-------------------------------------------------------
+	void glScrollbar::setExpandedWindowSize(int x)
+	{
+		if(x>=0)
+			expanded_window = x;
+		else
+			x = 0;
+
+		setScrollPosition(scroll_position);
+	}
+	void glScrollbar::setBackgroundColor(color c)
+	{
+		background = c;
+	}
+	void glScrollbar::setScrollPosition(int s)
+	{
+		scroll_position = s;
+		if(scroll_position<0 || master==NULL || height<20)
+		{
+			scroll_position = 0;
+			return;
+		}
+		
+		if(scroll_position>expanded_window-((glForm*)master)->getHeight())
+			scroll_position = expanded_window-((glForm*)master)->getHeight();
+		if(scroll_position<0)
+			scroll_position = 0;
+	}
+
+	//Get Functions-------------------------------------------------------
+	int glScrollbar::getExpandedWindowSize()
+	{
+		return expanded_window;
+	}
+	color glScrollbar::getBackgroundColor()
+	{
+		return background;
+	}
+	glArrowButton* glScrollbar::getUp()
+	{
+		return &up;
+	}
+	glArrowButton* glScrollbar::getDown()
+	{
+		return &down;
+	}
+	int glScrollbar::getScrollPosition()
+	{
+		return scroll_position;
+	}
+	int glScrollbar::isScroller()
+	{
+		return GL_YES;
+	}
+
+	//Graphics Functions--------------------------------------------------
+	
+	void glScrollbar::draw()
+	{
+		if(master==NULL)
+			return;
+		up.setY(((glForm*)master)->getHeight()-up.getHeight());
+		height = ((glForm*)master)->getHeight()-up.getHeight()-down.getHeight();
+		
+		if(height<20)
+		{
+			cerr<<"The form is too small for a scrollbar!"<<endl;
+			return;
+		}
+		
+		//Draw buttons
+		up.draw();
+		down.draw();
+		
+		//Draw background
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable( GL_BLEND );
+
+		glColor4f(background.red, background.green, background.blue, background.alpha);
+		glBegin(GL_QUADS);
+		glVertex2f(xPos, yPos);
+		glVertex2f(xPos, yPos + height);
+		glVertex2f(xPos + width, yPos + height);
+		glVertex2f(xPos + width, yPos);
+		glEnd();
+
+		//Draw slider
+		int true_window_size = expanded_window;
+		if(true_window_size<((glForm*)master)->getHeight())
+			true_window_size = ((glForm*)master)->getHeight();
+
+		glColor4f(col.red, col.green, col.blue, col.alpha);
+		glBegin(GL_QUADS);
+
+		//Calculate scroll bar
+		int scroll_size = ((glForm*)master)->getHeight()*(height-4)/true_window_size;
+		int scroll_pos = (height-4)*(scroll_position)/true_window_size;
+		glVertex2f(xPos, yPos + height - 2 - scroll_pos);
+		glVertex2f(xPos, yPos + height - 2 - scroll_size - scroll_pos);
+		glVertex2f(xPos + width, yPos + height - 2 - scroll_size - scroll_pos);
+		glVertex2f(xPos + width, yPos + height - 2 - scroll_pos);
+		glEnd();
+
+		if(selected)
+		{
+			glColor4f(clickedColor.red, clickedColor.green, clickedColor.blue, clickedColor.alpha);
+			glBegin(GL_QUADS);
+			glVertex2f(xPos, yPos + height - 2 - scroll_pos);
+			glVertex2f(xPos, yPos + height - 2 - scroll_size - scroll_pos);
+			glVertex2f(xPos + width, yPos + height - 2 - scroll_size - scroll_pos);
+			glVertex2f(xPos + width, yPos + height - 2 - scroll_pos);
+		}
+
+	}
+	
+	//Action Functions---------------------------------------------------
+	
+	bool glScrollbar::clickListener(int button, int state, int x, int y)
+	{
+		//Test sizes first
+		if(master==NULL)
+			return false;
+		if(((glForm*)master)->getHeight()-up.getHeight()-down.getHeight()<20)
+			return false;
+		up.setY(((glForm*)master)->getHeight()-up.getHeight());
+		height = ((glForm*)master)->getHeight()-up.getHeight()-down.getHeight();
+		
+		//Click buttons
+		if(up.clickListener(button,state,x,y))
+		{
+			scrollUp();
+			if(clickedFunction!=NULL)
+				clickedFunction(this,master);
+
+			return true;
+		}
+		if(down.clickListener(button,state,x,y))
+		{
+			scrollDown();
+			if(clickedFunction!=NULL)
+						clickedFunction(this,master);
+			return true;
+		}
+		
+		//Scrolling
+		if(button == 3)
+		{
+			scrollUp();
+			if(clickedFunction!=NULL)
+					clickedFunction(this,master);
+			return false;
+		}
+		if(button == 4)
+		{
+			scrollDown();
+			if(clickedFunction!=NULL)
+					clickedFunction(this,master);
+			return false;
+		}
+
+		//Click
+		if(button!=0)
+			return false;
+		
+		if(master==NULL)
+				return false;
+		
+		if(height<20)
+			return false;
+		
+		int true_window_size = expanded_window;
+		if(true_window_size<((glForm*)master)->getHeight())
+			true_window_size = ((glForm*)master)->getHeight();
+			
+		int scroll_size = ((glForm*)master)->getHeight()*(height-4)/true_window_size;
+		int scroll_pos = (height-4)*(scroll_position)/true_window_size;
+
+		//Pressed button
+		if(state == 0)
+		{
+			if(x>xPos && x<xPos+width && y<(yPos + height - 2 - scroll_pos) && y>(yPos + height - 2 - scroll_pos - scroll_size))
+			{
+				prev_pos = y;
+				selected = true;
+				return false;
+			}
+		}
+		//Released button
+		else if(state == 1)
+		{
+			selected = false;
+			prev_pos = 0;
+			return true;
+		}
+		else if(state == -1 && selected == true)
+		{
+			int dif = prev_pos - y;
+			setScrollPosition(getScrollPosition()+dif);
+			prev_pos = y;
+			if(clickedFunction!=NULL)
+					clickedFunction(this,master);
+			return false;
+		}
+
+		return false;
+	}
+	void glScrollbar::call_click()
+	{
+		if(clickedFunction!=NULL)
+				clickedFunction(this,master);
+	}
+	void glScrollbar::scrollUp()
+	{
+		setScrollPosition(scroll_position-10);
+	}
+	void glScrollbar::scrollDown()
+	{
+		setScrollPosition(scroll_position+10);
+	}
 
 #endif

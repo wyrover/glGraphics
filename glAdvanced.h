@@ -1,10 +1,15 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/8/2014
+//Confirmed working: 1/10/2015
 
 #pragma once
 
 #ifndef GLADVANCED_H
 #define GLADVANCED_H
+
+#define LABEL_MAX 2048
+
+#define GL_NO 0
+#define GL_YES 1
 
 #define KEY_ESCAPE 27
 #define KEY_BACKSPACE 8
@@ -13,6 +18,11 @@
 #define KEY_LEFT 100
 #define KEY_DOWN 103
 #define KEY_RIGHT 102
+
+#define IND_UP 0
+#define IND_LEFT 1
+#define IND_DOWN 2
+#define IND_RIGHT 3
 
 #include <string>
 #include <list>
@@ -43,6 +53,7 @@ protected:
 	void (*clickedFunction)(glElement*,void*);
 	void (*pressedFunction)(glElement*,void*);
 	void (*depressedFunction)(glElement*,void*);
+	void (*enterFunction)(glElement*,void*);
 	
 	//Button Dimensions
 	int xPos;
@@ -69,15 +80,21 @@ public:
 	int getHeight();
 	color getColor();
 	bool virtual getKeyboardStatus();
+	bool virtual getFocusable();
+	int virtual isScroller();
 
 	//Listeners
 	void setClickEvent(void (*func)(glElement*,void*));
 	void setPressedEvent(void (*func)(glElement*,void*));
 	void setReleaseEvent(void (*func)(glElement*,void*));
+	void setEnterEvent(void (*func) (glElement*, void*));
+	void virtual enter();
 	void virtual setMaster(void* m);
 	bool virtual clickListener(int button, int state, int x, int y);
 	void virtual keyListener(char key);
 	void virtual specialKeyListener(int key);
+	bool virtual surpressSpecial(int key);
+	void virtual focus(bool f);
 	
 	//Graphics Functions
 	void virtual draw();
@@ -87,8 +104,9 @@ public:
 //The gl label
 class glLabel:public glElement
 {
+private:
+	string text;
 protected:
-	char* text;
 	color textColor;
 
 	bool centered;
@@ -116,12 +134,41 @@ public:
 	//Graphics Functions
 	void virtual draw();
 };
+//An arrow button
+class glArrowButton:public glElement
+{
+protected:
+	color textColor;
+	color clickedColor;
+	int h_b;
+	int direction;
+
+public:
+	glArrowButton();
+	virtual ~glArrowButton();
+	
+	//Set Functions
+	void setTextColor(color c);
+	void setClickedColor(color c);
+	void setBorderSize(int s);
+	void setDirection(int d);
+	
+	//Get Functions
+	color getTextColor();
+	color getClickedColor();
+	int getBorderSize();
+	int getDirection();
+	
+	//Graphics Functions
+	void virtual draw();
+};
 //The gl button
 class glButton:public glLabel
 {
 protected:
 	color clickedColor;
 	int h_b;
+	bool focused;
 
 public:
 	glButton();
@@ -134,9 +181,12 @@ public:
 	//Get Functions
 	color getClickedColor();
 	int getBorderSize();
+	bool virtual getFocusable();
+	bool virtual getKeyboardStatus();
 
 	//Graphics Functions
 	void virtual draw();
+	void virtual focus(bool f);
 };
 //A glButton package for nested lists
 class nestedButtons
@@ -223,6 +273,7 @@ public:
 	void setDisplayType(bool x);
 	void pushBadInput(char x);
 	void setClickedColor(color c);
+	void virtual focus(bool f);
 
 	//Get Functions
 	char* getText();
@@ -230,6 +281,7 @@ public:
 	void* getFont();
 	bool virtual getKeyboardStatus();
 	color getClickedColor();
+	bool virtual getFocusable();
 
 	//Graphics Functions
 	void virtual draw();
@@ -237,6 +289,49 @@ public:
 	//Listeners
 	void virtual keyListener(char key);
 	void virtual specialKeyListener(int key);
+	bool virtual surpressSpecial(int key);
+};
+//The scrollbar
+class glScrollbar:
+	public glElement
+{
+protected:
+	glArrowButton up;
+	glArrowButton down;
+	
+	int expanded_window;
+	int scroll_position;
+
+	bool selected;
+	int prev_pos;
+
+	color background;
+	color clickedColor;
+public:
+	glScrollbar();
+	virtual ~glScrollbar();
+	
+	//Set Functions
+	void setExpandedWindowSize(int x);
+	void setBackgroundColor(color c);
+	void setScrollPosition(int s);
+
+	//Get Functions
+	int getExpandedWindowSize();
+	color getBackgroundColor();
+	glArrowButton* getUp();
+	glArrowButton* getDown();
+	int getScrollPosition();
+	int virtual isScroller();
+
+	//Graphics Functions
+	void virtual draw();
+	
+	//Listeners
+	bool virtual clickListener(int button, int state, int x, int y);
+	void call_click();
+	void scrollUp();
+	void scrollDown();
 };
 
 //Forms--------------------------------------------------------------------------------------------------------
@@ -252,13 +347,17 @@ protected:
 
 	bool lockDisplay;
 	bool reDisplay;
+	bool allowTraverse;
 	void virtual initialize();
 
 	list<glElement*> elmList;
 	list<glElement*> clickEvents;
 	glElement* focus;
+	glElement* hld;
+	glScrollbar* vertical_scroller;
 
 	bool form_return_flag;
+	bool traverse_focus_flag;
 	glForm* previous_form;
 	glForm* next_form;
 	bool is_pop_up;
@@ -292,6 +391,8 @@ public:
 	void setNextForm(glForm* x);
 	void setPopUp(glForm* popStr);
 	void virtual sendMessage(int x);
+	void setFocus(glElement* x);
+	void setTraverse(bool x);
 
 	//Graphics Function
 	void clear();
