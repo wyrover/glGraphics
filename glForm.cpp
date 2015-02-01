@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/8/2015
+//Confirmed working: 1/23/2015
 
 #ifndef GLFORM_CPP
 #define GLFORM_CPP
@@ -148,6 +148,16 @@ using namespace std;
 	float glForm3d::getZFar()
 	{
 		return z_far;
+	}
+	//Return the next form
+	glForm* glForm::getPreviousForm()
+	{
+		return previous_form;
+	}
+	//Return the previous form
+	glForm* glForm::getNextForm()
+	{
+		return next_form;
 	}
 
 //Set Functions----------------------------------------------------------------------------------------------------------------------------

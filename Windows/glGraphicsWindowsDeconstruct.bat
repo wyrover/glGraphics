@@ -14,6 +14,8 @@ del "glGraphics.vcxproj.users"
 del "glut.h"
 del "glut32.dll"
 del "osGraphics.h"
+del "glOSFunctions.h"
+del "glOSFunctions.cpp"
 del "gl_main_void"
 del "glGraphicsCompile.bash"
 

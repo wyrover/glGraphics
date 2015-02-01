@@ -12,5 +12,7 @@ copy "%cd%\Windows\glGraphics.vcxproj.user" "%cd%\glGraphics.vcxproj.user"
 copy "%cd%\Windows\glut.h" "%cd%\glut.h"
 copy "%cd%\Windows\glut32.dll" "%cd%\glut32.dll"
 copy "%cd%\Windows\osGraphics.h" "%cd%\osGraphics.h"
+copy "%cd%\Windows\glOSFunctions.h" "%cd%\glOSFunctions.h"
+copy "%cd%\Windows\glOSFunctions.cpp" "%cd%\glOSFunctions.cpp"
 
 cd Windows

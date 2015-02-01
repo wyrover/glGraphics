@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/10/2015
+//Confirmed working: 1/23/2015
 
 #pragma once
 
@@ -20,9 +20,9 @@
 #define KEY_RIGHT 102
 
 #define IND_UP 0
-#define IND_LEFT 1
+#define IND_LEFT 3
 #define IND_DOWN 2
-#define IND_RIGHT 3
+#define IND_RIGHT 1
 
 #include <string>
 #include <list>
@@ -377,6 +377,8 @@ public:
 	char* getTitle();
 	color getColor();
 	bool getLocked();
+	glForm* getPreviousForm();
+	glForm* getNextForm();
 
 	//Set Functions
 	void setWidth(int x);
