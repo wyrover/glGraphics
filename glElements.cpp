@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/10/2015
+//Confirmed working: 1/14/2015
 
 #ifndef GLELEMENTS_CPP
 #define GLELEMENTS_CPP
@@ -710,7 +710,7 @@ using namespace std;
 		      glVertex2f(xPos+width-h_b, yPos+h_b);
 		      glEnd();
 		}
-
+		
 		if(centered)
 			drawText(xPos+(width-textWidth)/2,yPos+(height-textHeight)/2,getText(),textColor,font);
 		else
@@ -1865,6 +1865,7 @@ using namespace std;
 		else if(state == -1 && selected == true)
 		{
 			int dif = prev_pos - y;
+			dif = dif*true_window_size/(height-4);
 			setScrollPosition(getScrollPosition()+dif);
 			prev_pos = y;
 			if(clickedFunction!=NULL)
