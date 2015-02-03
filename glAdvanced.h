@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/10/2015
+//Confirmed working: 2/2/2015
 
 #pragma once
 
@@ -20,9 +20,9 @@
 #define KEY_RIGHT 102
 
 #define IND_UP 0
-#define IND_LEFT 1
+#define IND_LEFT 3
 #define IND_DOWN 2
-#define IND_RIGHT 3
+#define IND_RIGHT 1
 
 #include <string>
 #include <list>
@@ -348,6 +348,7 @@ protected:
 	bool lockDisplay;
 	bool reDisplay;
 	bool allowTraverse;
+	bool default_exit;
 	void virtual initialize();
 
 	list<glElement*> elmList;
@@ -377,6 +378,9 @@ public:
 	char* getTitle();
 	color getColor();
 	bool getLocked();
+	bool getDefaultExit();
+	glForm* getPreviousForm();
+	glForm* getNextForm();
 
 	//Set Functions
 	void setWidth(int x);
@@ -387,6 +391,7 @@ public:
 	void addMouseListener(glElement* x);
 	void removeElement(glElement* x);
 	void setLocked(bool x);
+	void setDefaultExit(bool x);
 	void forceSize(int x, int y);
 	void setNextForm(glForm* x);
 	void setPopUp(glForm* popStr);
@@ -443,7 +448,7 @@ public:
 			void (*dispFunc)(),void (*keyBoard)(unsigned char, int, int),void (*mouse)(int,int,int,int),
 			void (*mouseMove)(int,int),void (*kU)(unsigned char, int, int),
 			void (*spc_down)(int,int,int),void (*spc_up)(int,int,int));
-	glForm3d(int wid, int hei, char* ti);
+	glForm3d(glForm* prev, int wid, int hei, char* ti,float fov,float zn,float zf);
 	virtual ~glForm3d();
 
 	//Get Functions
