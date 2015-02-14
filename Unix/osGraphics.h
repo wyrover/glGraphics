@@ -1,4 +1,5 @@
 //Primary Author: Jonathan Bedard
+//Confirmed working: 2/2/2015
 
 /*This file contains the OS specific functions needed in opengl*/
 
@@ -49,7 +50,6 @@ static void checkForceSize(glForm* x)
 	if(x->getLocked()&&(x->getWidth() != glutGet(GLUT_WINDOW_WIDTH) || x->getHeight() != glutGet(GLUT_WINDOW_HEIGHT)))
 	{
 		glutReshapeWindow(x->getWidth(),x->getHeight());
-		cout<<"click"<<endl;
 	}
 	else if(!(x->getLocked()))
 	{

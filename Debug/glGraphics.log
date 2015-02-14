@@ -1,0 +1,4 @@
+﻿  gl_main_void.cpp
+b:\jonathan bedard proxy\documents\visual studio 2012\projects\voxelgenerator\glgraphics\osgraphics.h(75): warning C4244: 'argument' : conversion from 'float' to 'GLint', possible loss of data
+b:\jonathan bedard proxy\documents\visual studio 2012\projects\voxelgenerator\glgraphics\osgraphics.h(72): warning C4101: 'len' : unreferenced local variable
+  glGraphics.vcxproj -> b:\jonathan bedard proxy\documents\visual studio 2012\Projects\VoxelGenerator\Debug\glGraphics.exe

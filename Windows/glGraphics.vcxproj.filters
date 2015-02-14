@@ -39,6 +39,12 @@
     <ClInclude Include="osGraphics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="glSpecialForm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="glOSFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glElements.cpp">
@@ -48,6 +54,12 @@
       <Filter>Resource Files</Filter>
     </ClCompile>
     <ClCompile Include="gl_main_void.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="glOSFunctions.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="glSpecialForm.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
   </ItemGroup>

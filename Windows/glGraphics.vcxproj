@@ -70,12 +70,16 @@
     <ClInclude Include="glAdvanced.h" />
     <ClInclude Include="glLibrary.h" />
     <ClInclude Include="glLibraryComplete.h" />
+    <ClInclude Include="glOSFunctions.h" />
+    <ClInclude Include="glSpecialForm.h" />
     <ClInclude Include="glut.h" />
     <ClInclude Include="osGraphics.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glElements.cpp" />
     <ClCompile Include="glForm.cpp" />
+    <ClCompile Include="glOSFunctions.cpp" />
+    <ClCompile Include="glSpecialForm.cpp" />
     <ClCompile Include="gl_main_void.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
