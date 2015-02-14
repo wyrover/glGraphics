@@ -1,5 +1,9 @@
 //Primary author: Jonathan Bedard
+<<<<<<< HEAD
 //Confirmed working: 2/13/2015
+=======
+//Confirmed working: 1/14/2015
+>>>>>>> origin/master
 
 #ifndef GLELEMENTS_CPP
 #define GLELEMENTS_CPP
