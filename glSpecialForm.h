@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/16/2015
+//Confirmed working: 2/13/2015
 
 #pragma once
 
@@ -9,6 +9,7 @@
 using namespace std;
 
 #include "glAdvanced.h"
+#include "osGraphics.h"
 
 //Restrict the size of a string (from the back)
 static string gl_restrict_size(string source, void* font, int length)
@@ -64,6 +65,9 @@ protected:
 	glButton** fileIDButtons;
 	glArrowButton** folderArrows;
 	string* good_name_array;
+	string* local_files;
+	int local_files_len;
+	bool is_local;
 
 	string currentDirectoryLocation;
 	bool must_add;
@@ -88,6 +92,7 @@ public:
 	void set_screen_function(bool (*func)(string*));
 	void set_button_modification_function(void (*func)(glButton*,glArrowButton*, string*));
 	void set_button_click_Function(void (*func)(glElement*, string*, glFileEditForm*));
+	void set_local_files(string* f_array, int len);
 
 	//Button array
 	void recheckFiles();

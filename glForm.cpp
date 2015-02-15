@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/23/2015
+//Confirmed working: 2/4/2015
 
 #ifndef GLFORM_CPP
 #define GLFORM_CPP
@@ -34,6 +34,7 @@ using namespace std;
 		height =100;
 		title = (char*) "NULL";
 		lockDisplay = true;
+		default_exit = true;
 		focus = NULL;
 		hld = NULL;
 
@@ -99,6 +100,21 @@ using namespace std;
 
 		reDisplay = false;
 		lockDisplay = false;
+		default_exit = true;
+	}
+	//Nested 3d form constructor
+	glForm3d::glForm3d(glForm* prev, int wid, int hei, char* ti,float fov,float zn,float zf):
+		glForm(prev)
+	{
+		field_of_view_angle=45;
+		z_near=0;
+		z_far=100;
+
+		setFOV(fov);
+		setZNear(zn);
+		setZFar(zf);
+
+		reDisplay=false;
 	}
 	//Destructors
 	glForm::~glForm()
@@ -133,6 +149,11 @@ using namespace std;
 	bool glForm::getLocked()
 	{
 		return lockDisplay;
+	}
+	//Returns the state of default exit
+	bool glForm::getDefaultExit()
+	{
+		return default_exit;
 	}
 	//Returns the field of view
 	float glForm3d::getFOV()
@@ -198,6 +219,11 @@ using namespace std;
 	void glForm::setLocked(bool x)
 	{
 		lockDisplay = x;
+	}
+	//Sets the state of default exit
+	void glForm::setDefaultExit(bool x)
+	{
+		default_exit = x;
 	}
 	//Sets the next form
 	void glForm::setNextForm(glForm* x)
@@ -418,7 +444,10 @@ using namespace std;
 	void glForm3d::draw()
 	{
 		if(next_form!=NULL)
+		{
+			glDisable(GL_DEPTH_TEST);
 			next_form->draw();
+		}
 		else
 		{
 			glMatrixMode(GL_PROJECTION);
@@ -438,10 +467,11 @@ using namespace std;
 			glLoadIdentity();
 			glOrtho(0, getWidth(), 0, getHeight(), -1, 1);
 			glMatrixMode(GL_MODELVIEW);
-			glMatrixMode(GL_MODELVIEW);
 			glLoadIdentity();
-			glDisable(GL_CULL_FACE);
 
+			glDisable(GL_CULL_FACE);
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_LEQUAL);
 			glClear(GL_DEPTH_BUFFER_BIT);
 
 			drawElements();
@@ -459,7 +489,9 @@ using namespace std;
 		if(next_form!=NULL)
 			next_form->display();
 		else
+		{
 			glutSwapBuffers();
+		}
 	}
 	//Draws the elements
 	void glForm::drawElements()
@@ -578,15 +610,9 @@ using namespace std;
 		}
 		mousePositionY=height-mousePositionY;
 
-		switch ( key ) 
-		{
-			case KEY_ESCAPE:        
-			exit ( 0 );   
-			break;
-
-			default:      
-			break;
-		}
+		//Force Quit
+		if(default_exit && key == KEY_ESCAPE ) 
+			exit ( 0 );
 		
 		//Enter key
 		if(hld==NULL)

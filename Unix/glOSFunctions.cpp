@@ -1,16 +1,36 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/31/2015
+//Confirmed working: 2/14/2015
 
 //This is the file which contains the declarations for the OS unique functions
 
 /*
-WINDOWS ONLY
+UNIX ONLY
 */
 
 #ifndef GLOSFUNCTIONS_CPP
 #define GLOSFUNCTIONS_CPP
 
 using namespace std;
+
+#include <unistd.h>
+#include <libproc.h>
+
+//Mac Case
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+static int os_specific(char* dump_array, int len)
+{
+    uint32_t rlen = len;
+    _NSGetExecutablePath(dump_array, &rlen);
+}
+
+//Linux Case
+#elif
+static int os_specific(char* dump_array, int len)
+{
+    return readlink("/proc/self/exe",dump_array,len)
+}
+#endif
 
 #include "glOSFunctions.h"
 
@@ -23,7 +43,33 @@ void glSetSource(char* source_string)
 {
 	glSourceString = string(source_string);
 	glExecutableName = gl_extract_name(glSourceString);
-	glSourceString = glSourceString.substr(0,glSourceString.length()-glExecutableName.length()-1);
+    int char_len = 1024;
+	char dump_array[char_len];
+	
+    //Attempt through the OS specific method
+	if(os_specific(dump_array,char_len)!=-1)
+		glSourceString = string(dump_array);
+    //Attempt throught the PID method
+	else
+	{
+        int ret;
+        pid_t pid;
+        pid = getpid();
+        ret = proc_pidpath(pid,dump_array,char_len);
+        if(ret<=0)
+        {
+            cerr<<"Cannot get absolute executable path!"<<endl;
+            exit(EXIT_FAILURE);
+            return;
+        }
+	}
+	
+    glSourceString = string(dump_array);
+    if(source_string[0] == '.')
+    {
+        glSourceString = glSourceString.substr(0,glSourceString.length()-glExecutableName.length()-2);
+        glSourceString += glExecutableName;
+    }
 
 	depth = 0;
 	int cnt = 0;

@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/20/2015
+//Confirmed working: 2/14/2015
 
 #pragma once
 
@@ -23,8 +23,11 @@ using namespace std;
 	glFileEditForm::glFileEditForm(glForm* prev, char* starting_loc):
 		glForm(prev)
 	{
+		is_local = false;
 		store_height = height;
 		store_width = width;
+		local_files = NULL;
+		local_files_len =0;
 
 		//Bad form
 		if(width - 120 < 170)
@@ -147,15 +150,24 @@ using namespace std;
 	{
 		button_click = func;
 	}
+	void glFileEditForm::set_local_files(string* f_array, int len)
+	{
+		local_files = f_array;
+		local_files_len = len;
+	}
 
 //Button Arrays---------------------------------------------------------------------------------------------
+	
 	//Reinitializes all of the buttons
 	void glFileEditForm::recheckFiles()
 	{
 		must_add = false;
 
 		//Set the header label
-		lblHeader.setText((char*) gl_restrict_size_front(currentDirectoryLocation.c_str(),lblHeader.getFont(),width-200).c_str());
+		if(is_local)
+			lblHeader.setText((char*) gl_restrict_size_front(glGetSource().c_str(),lblHeader.getFont(),width-200).c_str());
+		else
+			lblHeader.setText((char*) gl_restrict_size_front(currentDirectoryLocation.c_str(),lblHeader.getFont(),width-200).c_str());
 
 		//Remove old elements
 		int cnt = 0;
@@ -185,7 +197,15 @@ using namespace std;
 		num_good_files = 0;
 		int new_cnt = 0;
 		cnt = 0;
-		string* file_array = gl_list_files(currentDirectoryLocation,&num_files);
+		string* file_array;
+		if(is_local)
+		{
+			file_array = local_files;
+			num_files = local_files_len;
+		}
+		else
+			file_array = gl_list_files(currentDirectoryLocation,&num_files);
+
 		fileIDButtons = new glButton*[num_files];
 		folderArrows = new glArrowButton*[num_files];
 		good_name_array = new string[num_files];
@@ -198,11 +218,11 @@ using namespace std;
 			cnt++;
 		}
 		cnt = 0;
-
+		
 		//Place the file buttons
 		while(cnt<num_files)
 		{
-			if(gl_is_directory(file_array[cnt])&&(screen_address==NULL || screen_address(&(file_array[cnt]))))
+			if((screen_address==NULL || screen_address(&(file_array[cnt])))&&(gl_is_directory(file_array[cnt]) || glGetExecutable()==gl_extract_name(file_array[cnt])))
 			{
 				good_name_array[new_cnt] = file_array[cnt];
 				fileIDButtons[new_cnt] = new glButton();
@@ -233,7 +253,7 @@ using namespace std;
 		cnt = 0;
 		while(cnt<num_files)
 		{
-			if(!gl_is_directory(file_array[cnt]) && (screen_address==NULL || screen_address(&(file_array[cnt]))))
+			if(!(gl_is_directory(file_array[cnt]) || glGetExecutable()==gl_extract_name(file_array[cnt])) && (screen_address==NULL || screen_address(&(file_array[cnt]))))
 			{
 				good_name_array[new_cnt] = file_array[cnt];
 				fileIDButtons[new_cnt] = new glButton();
@@ -253,7 +273,8 @@ using namespace std;
 			cnt++;
 		}
 
-		delete [] file_array;
+		if(!is_local)
+			delete [] file_array;
 
 		int num_rows = (num_good_files+(num_columns - num_good_files%num_columns))/num_columns;
 		if(num_good_files%num_columns == 0)
@@ -311,22 +332,48 @@ using namespace std;
 	}
 
 //Moving Directories----------------------------------------------------------------------------------------
+	
 	//Move up into a named directory
 	bool glFileEditForm::moveUp(string dir_name)
 	{
+		//The local case: move to that folder
+		if(is_local)
+		{
+			if(!gl_is_directory(dir_name))
+				return false;
+			currentDirectoryLocation = dir_name;
+			is_local = false;
+			must_add = true;
+			return true;
+		}
+
+		//The general case
 		string old = currentDirectoryLocation;
-		currentDirectoryLocation = old + "\\" + dir_name;
+		currentDirectoryLocation = old + "/" + dir_name;
 		if(gl_is_directory(currentDirectoryLocation))
 		{
 			must_add = true;
 			return true;
 		}
 		currentDirectoryLocation = old;
+		if(dir_name == glGetExecutable())
+		{
+			must_add = true;
+			is_local = true;
+			return true;
+		}
 		return false;
 	}
 	//Move back a directory
 	bool glFileEditForm::moveDown()
 	{
+		//First, test if we are local
+		if(is_local)
+		{
+			is_local = false;
+			must_add = true;
+			return true;
+		}
 		string test_val = gl_extract_name(currentDirectoryLocation);
 
 		//Relative directories
@@ -393,6 +440,7 @@ using namespace std;
 	}
 
 //Actions---------------------------------------------------------------------------------------------------
+	
 	void glFileEditForm::virtual_update()
 	{
 		if(must_add)
@@ -446,7 +494,10 @@ using namespace std;
 		{
 			if(source==folderArrows[cnt])
 			{
-				moveUp(gl_extract_name(good_name_array[cnt]));
+				if(is_local)
+					moveUp(good_name_array[cnt]);
+				else
+					moveUp(gl_extract_name(good_name_array[cnt]));
 				return;
 			}
 			cnt++;

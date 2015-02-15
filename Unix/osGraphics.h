@@ -1,4 +1,5 @@
 //Primary Author: Jonathan Bedard
+//Confirmed working: 2/14/2015
 
 /*This file contains the OS specific functions needed in opengl*/
 
@@ -14,12 +15,21 @@
 #include <stdio.h>
 #include <iostream>
 
+//Apple case
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#include <GLUT/glut.h>
+
+//Linux Case
+#else
 #include "GL/freeglut.h"
 #include <GL/glut.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
 #include <GL/glx.h>
 #include <GL/gl.h>
+#endif
 
 //#include "glLibrary.h"
 
@@ -49,7 +59,6 @@ static void checkForceSize(glForm* x)
 	if(x->getLocked()&&(x->getWidth() != glutGet(GLUT_WINDOW_WIDTH) || x->getHeight() != glutGet(GLUT_WINDOW_HEIGHT)))
 	{
 		glutReshapeWindow(x->getWidth(),x->getHeight());
-		cout<<"click"<<endl;
 	}
 	else if(!(x->getLocked()))
 	{

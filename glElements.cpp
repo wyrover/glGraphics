@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/14/2015
+//Confirmed working: 2/15/2015
 
 #ifndef GLELEMENTS_CPP
 #define GLELEMENTS_CPP
@@ -1308,7 +1308,7 @@ using namespace std;
 	{
 		if(t!=NULL)
 		{
-			true_text = t;
+			true_text = string(t);
 			if(display)
 				text = true_text;
 			else
@@ -1323,6 +1323,15 @@ using namespace std;
 				text = str;
 			}
 		}
+		else
+		{
+			true_text = "";
+			text = "";
+		}
+
+		//Ensure that curs_loc bounds are correct
+		if(cursor_loc>text.length())
+			cursor_loc = -1;
 	}
 	//Sets the text color
 	void glTextbox::setTextColor(color c)
@@ -1438,7 +1447,7 @@ using namespace std;
 
 		//Draw text
 		drawText(xPos+10,yPos+(height-textHeight)/2,(char*) text.c_str(),textColor,font);
-
+		
 		//Draw cursor
 		if(cursor_loc == -1)
 			return;
@@ -1509,7 +1518,7 @@ using namespace std;
 		}
 
 		//Backspace
-		if(key == 8)
+		if(key == KEY_BACKSPACE || key == KEY_DELETE)
 		{
 			if(cursor_loc<0)
 				return;

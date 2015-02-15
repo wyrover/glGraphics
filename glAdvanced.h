@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/23/2015
+//Confirmed working: 2/15/2015
 
 #pragma once
 
@@ -13,6 +13,7 @@
 
 #define KEY_ESCAPE 27
 #define KEY_BACKSPACE 8
+#define KEY_DELETE 127
 
 #define KEY_UP 101
 #define KEY_LEFT 100
@@ -348,6 +349,7 @@ protected:
 	bool lockDisplay;
 	bool reDisplay;
 	bool allowTraverse;
+	bool default_exit;
 	void virtual initialize();
 
 	list<glElement*> elmList;
@@ -377,6 +379,7 @@ public:
 	char* getTitle();
 	color getColor();
 	bool getLocked();
+	bool getDefaultExit();
 	glForm* getPreviousForm();
 	glForm* getNextForm();
 
@@ -389,6 +392,7 @@ public:
 	void addMouseListener(glElement* x);
 	void removeElement(glElement* x);
 	void setLocked(bool x);
+	void setDefaultExit(bool x);
 	void forceSize(int x, int y);
 	void setNextForm(glForm* x);
 	void setPopUp(glForm* popStr);
@@ -445,7 +449,7 @@ public:
 			void (*dispFunc)(),void (*keyBoard)(unsigned char, int, int),void (*mouse)(int,int,int,int),
 			void (*mouseMove)(int,int),void (*kU)(unsigned char, int, int),
 			void (*spc_down)(int,int,int),void (*spc_up)(int,int,int));
-	glForm3d(int wid, int hei, char* ti);
+	glForm3d(glForm* prev, int wid, int hei, char* ti,float fov,float zn,float zf);
 	virtual ~glForm3d();
 
 	//Get Functions
