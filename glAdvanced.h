@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 2/2/2015
+//Confirmed working: 2/15/2015
 
 #pragma once
 
@@ -13,6 +13,7 @@
 
 #define KEY_ESCAPE 27
 #define KEY_BACKSPACE 8
+#define KEY_DELETE 127
 
 #define KEY_UP 101
 #define KEY_LEFT 100

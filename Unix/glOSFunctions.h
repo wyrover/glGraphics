@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/31/2015
+//Confirmed working: 2/14/2015
 
 //This is the file which contains the declarations for the OS unique functions
 
@@ -20,7 +20,7 @@ UNIX/MAC
 #include <sys/unistd.h>
 #include <dirent.h>
 
-#define DEFAULT_LOC "?"
+#define DEFAULT_LOC "/home"
 
 //Sets the source file location
 void glSetSource(char* source_string);

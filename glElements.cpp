@@ -1,9 +1,5 @@
 //Primary author: Jonathan Bedard
-<<<<<<< HEAD
-//Confirmed working: 2/13/2015
-=======
-//Confirmed working: 1/14/2015
->>>>>>> origin/master
+//Confirmed working: 2/15/2015
 
 #ifndef GLELEMENTS_CPP
 #define GLELEMENTS_CPP
@@ -1522,7 +1518,7 @@ using namespace std;
 		}
 
 		//Backspace
-		if(key == 8)
+		if(key == KEY_BACKSPACE || key == KEY_DELETE)
 		{
 			if(cursor_loc<0)
 				return;

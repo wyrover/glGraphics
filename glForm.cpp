@@ -1,9 +1,5 @@
 //Primary author: Jonathan Bedard
-<<<<<<< HEAD
 //Confirmed working: 2/4/2015
-=======
-//Confirmed working: 2/2/2015
->>>>>>> origin/master
 
 #ifndef GLFORM_CPP
 #define GLFORM_CPP
